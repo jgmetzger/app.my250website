@@ -1,0 +1,39 @@
+name = "app-my250website-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-25"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Bind the Worker to all /api/* requests on the custom domain.
+# Configure the route AFTER first deployment + DNS proxy. Documented in README.
+[[routes]]
+pattern = "app.my250website.com/api/*"
+zone_name = "my250website.com"
+custom_domain = false
+
+# Cloudflare D1 — single SQLite-at-the-edge database.
+# Replace database_id after running `pnpm db:create`.
+[[d1_databases]]
+binding = "DB"
+database_name = "wfbr-crm"
+database_id = "REPLACE_WITH_D1_ID_FROM_WRANGLER_D1_CREATE"
+migrations_dir = "../../migrations"
+
+# Cloudflare Browser Rendering (paid plan). Falls back to BROWSER_RENDERING_TOKEN
+# (Browserless.io) at runtime if this binding isn't available — see src/scrape/browser.ts.
+[browser]
+binding = "BROWSER"
+
+[vars]
+SENDER_EMAIL = "james@my250website.com"
+SENDER_NAME = "James Metzger"
+DAILY_EMAIL_CAP = "15"
+
+# Secrets are NOT committed. Set with `wrangler secret put NAME`:
+#   APP_PASSWORD, JWT_SECRET, RESEND_API_KEY,
+#   TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_API_KEY, TWILIO_API_SECRET,
+#   TWILIO_TWIML_APP_SID, TWILIO_PHONE_NUMBER,
+#   BROWSER_RENDERING_TOKEN (only if using Browserless fallback)
+
+[observability]
+enabled = true
