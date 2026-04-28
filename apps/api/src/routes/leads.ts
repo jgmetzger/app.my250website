@@ -158,7 +158,8 @@ export const leadsRoutes = new Hono<AppBindings>()
     if (contentType.includes("multipart/form-data")) {
       const form = await c.req.raw.formData();
       const file = form.get("file");
-      if (!(file instanceof File)) return c.json({ error: "no_file" }, 400);
+      // FormData.get returns string | File | null; in Workers, File extends Blob.
+      if (!file || typeof file === "string") return c.json({ error: "no_file" }, 400);
       if (file.size > 5 * 1024 * 1024) return c.json({ error: "file_too_large" }, 413);
       csvText = await file.text();
     } else {

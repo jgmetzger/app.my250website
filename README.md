@@ -91,6 +91,7 @@ cd apps/api
 npx wrangler secret put APP_PASSWORD                # the single login password
 npx wrangler secret put JWT_SECRET                  # any 32+ char random string
 npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put RESEND_WEBHOOK_SECRET     # optional but recommended
 npx wrangler secret put TWILIO_ACCOUNT_SID
 npx wrangler secret put TWILIO_AUTH_TOKEN
 npx wrangler secret put TWILIO_API_KEY
@@ -187,6 +188,12 @@ the same query — duplicates are skipped automatically.
 - Verify the sending domain `my250website.com` (Domains tab; add the printed DNS records).
 - Set `SENDER_EMAIL` in `wrangler.toml` to a mailbox at that domain (default: `james@my250website.com`).
 - Hard daily cap: `DAILY_EMAIL_CAP=15` (env var). Increase if needed.
+- **Webhook signing.** Create a webhook in the Resend dashboard pointing at
+  `https://app.my250website.com/api/webhooks/resend`, copy the Signing Secret
+  (starts with `whsec_`), and store as `RESEND_WEBHOOK_SECRET`. The Worker
+  rejects unsigned / tampered / stale (>5 min) payloads when this is set.
+  If the secret is unset, signed verification is bypassed (logs delivery
+  events as before).
 
 ---
 

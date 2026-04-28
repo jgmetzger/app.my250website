@@ -1,7 +1,12 @@
+/// <reference lib="dom" />
 // Google Maps DOM scraper. Selectors here are inherently fragile — Google ships
 // markup changes frequently. If a scrape returns 0 results, the first thing to
 // check is whether these selectors still match. Each one is named so the call
 // site logs which one failed.
+//
+// The /// <reference lib="dom" /> above pulls in DOM types so the inline
+// page.evaluate callbacks below can reference document / HTMLElement / etc.
+// At runtime those run inside the headless Chromium, not the Worker.
 import type { Browser, Page } from "@cloudflare/puppeteer";
 
 export interface ScrapedListing {

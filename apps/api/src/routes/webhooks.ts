@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import type { AppBindings } from "../env.js";
 import { insertActivity } from "../repos/activities.js";
 import type { ActivityType } from "@app/shared";
+import { verifyResendWebhook } from "../lib/resend_signature.js";
 import { verifyTwilioSignature } from "../lib/twilio_signature.js";
 
 // Public routes — Twilio + Resend sign their requests; we verify
@@ -19,7 +20,10 @@ function escapeXml(s: string): string {
 async function readForm(req: Request): Promise<Record<string, string>> {
   const form = await req.formData();
   const out: Record<string, string> = {};
-  for (const [k, v] of form.entries()) out[k] = typeof v === "string" ? v : "";
+  // Workers FormData supports forEach but not iterators on every type version.
+  form.forEach((v, k) => {
+    out[k] = typeof v === "string" ? v : "";
+  });
   return out;
 }
 
@@ -64,9 +68,25 @@ export const webhookRoutes = new Hono<AppBindings>()
     // Resend webhook payload shape:
     //   { type: 'email.delivered'|'email.opened'|'email.bounced'|...,
     //     data: { email_id, to, subject, tags: [{ name, value }] } }
+    //
+    // We must read the body as text for signature verification, then parse JSON.
+    const rawBody = await c.req.text();
+    if (c.env.RESEND_WEBHOOK_SECRET) {
+      const ok = await verifyResendWebhook({
+        rawBody,
+        svixId: c.req.header("svix-id") ?? null,
+        svixTimestamp: c.req.header("svix-timestamp") ?? null,
+        svixSignature: c.req.header("svix-signature") ?? null,
+        secret: c.env.RESEND_WEBHOOK_SECRET,
+      });
+      if (!ok) return new Response("forbidden", { status: 403 });
+    }
+    // If the secret is not set, we accept unsigned payloads — same behaviour as
+    // before. Set RESEND_WEBHOOK_SECRET to enable verification.
+
     let payload: ResendWebhookPayload;
     try {
-      payload = (await c.req.json()) as ResendWebhookPayload;
+      payload = JSON.parse(rawBody) as ResendWebhookPayload;
     } catch {
       return c.json({ error: "invalid_json" }, 400);
     }

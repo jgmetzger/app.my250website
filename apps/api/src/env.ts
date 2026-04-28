@@ -12,6 +12,8 @@ export interface Env {
   APP_PASSWORD: string;
   JWT_SECRET: string;
   RESEND_API_KEY: string;
+  /** From Resend → Webhooks → endpoint → Signing Secret (starts with whsec_). Optional but recommended. */
+  RESEND_WEBHOOK_SECRET?: string;
   TWILIO_ACCOUNT_SID: string;
   TWILIO_AUTH_TOKEN: string;
   TWILIO_API_KEY: string;
