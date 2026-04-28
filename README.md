@@ -71,6 +71,20 @@ Subsequent phases — leads CRUD, scraping, email, calls, stats, CSV import — 
 
 ## One-time setup
 
+**See [SETUP.md](./SETUP.md) for the friendly walk-through.** The short version is:
+
+```bash
+./scripts/bootstrap.sh
+```
+
+That script handles install, wrangler login, D1 creation, migrations, secret
+prompts, and deploy. Things only you can do (sign-ups, Twilio number purchase,
+Cloudflare dashboard clicks) are flagged with `ACTION:` and the script pauses.
+
+---
+
+### Manual reference (if you want to skip the script)
+
 ```bash
 # 1. Install
 pnpm install
