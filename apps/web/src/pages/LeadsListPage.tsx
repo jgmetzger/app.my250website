@@ -9,6 +9,7 @@ import {
 } from "@app/shared";
 import { Layout } from "../components/Layout.js";
 import { StatusBadge, WebsiteBadge } from "../components/Badge.js";
+import { EmptyState, Spinner } from "../components/Spinner.js";
 import { api } from "../lib/api.js";
 import { formatRelative } from "../lib/format.js";
 
@@ -109,6 +110,11 @@ export function LeadsListPage() {
   }
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
+  const hasAnyFilter =
+    selectedStatuses.length > 0 ||
+    selectedWebsiteStatuses.length > 0 ||
+    Boolean(city) ||
+    Boolean(search);
 
   return (
     <Layout>
@@ -217,11 +223,26 @@ export function LeadsListPage() {
             </div>
           ) : null}
           {loading && !data ? (
-            <div className="text-sm text-muted">Loading leads…</div>
+            <Spinner label="Loading leads" />
           ) : data && data.leads.length === 0 ? (
-            <div className="card text-center text-muted">
-              No leads match these filters.
-            </div>
+            hasAnyFilter ? (
+              <EmptyState title="No matches" hint="Try clearing some filters." />
+            ) : (
+              <EmptyState
+                title="No leads yet"
+                hint="Run a scrape to find some, or add one manually."
+                action={
+                  <div className="flex gap-2">
+                    <Link to="/scrape" className="btn-primary text-sm">
+                      Find leads
+                    </Link>
+                    <Link to="/leads/new" className="btn-secondary text-sm">
+                      + Add manually
+                    </Link>
+                  </div>
+                }
+              />
+            )
           ) : data ? (
             <>
               <div className="card overflow-hidden p-0">

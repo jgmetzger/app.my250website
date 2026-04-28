@@ -206,16 +206,14 @@ Seeded on first migration as **WFBR cold outreach**. Supports `{{business_name}}
 
 ## Build order (per `BUILD ORDER` in the original spec)
 
-1. ✅ Foundation — repo, Tailwind, D1, auth, login (this commit)
-2. Leads CRUD — schema-backed, list/detail/edit/delete
-3. Scraping — Browser Rendering, Maps scrape, classify, dedupe
-4. Email — templates editor, Resend send, activity log
-5. Calls — Twilio token endpoint, browser softphone, outcome modal
-6. Dashboard + stats
-7. CSV import for migrating existing leads
-8. Polish
-
-Each phase deploys to production before the next starts.
+1. ✅ Foundation — repo, Tailwind, D1, auth, login
+2. ✅ Leads CRUD — list, detail, inline edit, delete, status, notes
+3. ✅ Scraping — Browser Rendering, Maps scrape, classify, dedupe, run status
+4. ✅ Email — templates editor, Resend send, daily cap, webhook
+5. ✅ Calls — Twilio token, browser softphone, outcome modal, TwiML
+6. ✅ Dashboard + stats — single-call /api/stats/dashboard, recent activity
+7. ✅ CSV import — multipart upload, per-row validation, error report
+8. ✅ Polish — mobile nav (hamburger), Settings page, Spinner/EmptyState, skip-to-content link, focus rings
 
 ---
 
