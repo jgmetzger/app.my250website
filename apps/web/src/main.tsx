@@ -9,7 +9,7 @@ import { LeadDetailPage } from "./pages/LeadDetailPage.js";
 import { NewLeadPage } from "./pages/NewLeadPage.js";
 import { ScrapePage } from "./pages/ScrapePage.js";
 import { ScrapeRunStatusPage } from "./pages/ScrapeRunStatusPage.js";
-import { PlaceholderPage } from "./pages/PlaceholderPage.js";
+import { TemplatesPage } from "./pages/TemplatesPage.js";
 import { RequireAuth } from "./auth/RequireAuth.js";
 
 const root = document.getElementById("root");
@@ -33,14 +33,7 @@ ReactDOM.createRoot(root).render(
           path="/scrape/runs/:id"
           element={<Protected><ScrapeRunStatusPage /></Protected>}
         />
-        <Route
-          path="/templates"
-          element={
-            <Protected>
-              <PlaceholderPage title="Email templates" phase={4} />
-            </Protected>
-          }
-        />
+        <Route path="/templates" element={<Protected><TemplatesPage /></Protected>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

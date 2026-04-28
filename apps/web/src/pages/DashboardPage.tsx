@@ -97,7 +97,7 @@ export function DashboardPage() {
           <li>✓ Phase 1 — Foundation (auth, schema, deploy)</li>
           <li>✓ Phase 2 — Leads CRUD (list, detail, edit, status, notes)</li>
           <li>✓ Phase 3 — Scraping (Maps, classify, dedupe, run status)</li>
-          <li>· Phase 4 — Email</li>
+          <li>✓ Phase 4 — Email (templates, Resend send, daily cap, webhook)</li>
           <li>· Phase 5 — Calls</li>
           <li>· Phase 6 — Dashboard stats endpoint</li>
           <li>· Phase 7 — CSV import</li>

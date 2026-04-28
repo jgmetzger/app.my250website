@@ -11,6 +11,8 @@ import {
 } from "@app/shared";
 import { Layout } from "../components/Layout.js";
 import { StatusBadge, WebsiteBadge } from "../components/Badge.js";
+import { FindEmailSidebar } from "../components/FindEmailSidebar.js";
+import { SendEmailModal } from "../components/SendEmailModal.js";
 import { api } from "../lib/api.js";
 import { formatDateTime, formatRelative, isWithinUkCallingHours } from "../lib/format.js";
 
@@ -41,6 +43,7 @@ export function LeadDetailPage() {
   const [noteDraft, setNoteDraft] = useState("");
   const [postingNote, setPostingNote] = useState(false);
   const [okToCall] = useState(isWithinUkCallingHours());
+  const [showSendEmail, setShowSendEmail] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +160,14 @@ export function LeadDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowSendEmail(true)}
+            disabled={!lead.email}
+            className="btn-primary text-sm"
+            title={lead.email ? "Send email" : "Add an email first"}
+          >
+            ✉️ Send email
+          </button>
           <button onClick={deleteLead} className="btn-secondary text-sm text-red-700">
             Delete
           </button>
@@ -294,6 +305,7 @@ export function LeadDetailPage() {
 
         {/* Right: timeline + actions */}
         <aside className="col-span-12 lg:col-span-5 space-y-6">
+          <FindEmailSidebar lead={lead} />
           <div className="card space-y-3">
             <h2 className="font-serif text-xl">Add note</h2>
             <textarea
@@ -339,6 +351,17 @@ export function LeadDetailPage() {
           </div>
         </aside>
       </div>
+
+      {showSendEmail ? (
+        <SendEmailModal
+          lead={lead}
+          onClose={() => setShowSendEmail(false)}
+          onSent={async () => {
+            const fresh = await api.get<DetailResponse>(`/api/leads/${leadId}`);
+            setData(fresh);
+          }}
+        />
+      ) : null}
     </Layout>
   );
 }
