@@ -5,8 +5,10 @@ import {
   LeadUpdate,
   NoteInput,
   StatusChangeInput,
+  type LeadCreateT,
 } from "@app/shared";
 import type { AppBindings } from "../env.js";
+import { parseCsv } from "../lib/csv.js";
 import { insertActivity, listActivitiesForLead } from "../repos/activities.js";
 import {
   createLead,
@@ -150,5 +152,69 @@ export const leadsRoutes = new Hono<AppBindings>()
   })
 
   .post("/import-csv", async (c) => {
-    return c.json({ error: "not_implemented", phase: 7 }, 501);
+    // Accept either text/csv body OR a multipart upload with a `file` field.
+    let csvText: string;
+    const contentType = c.req.header("content-type") ?? "";
+    if (contentType.includes("multipart/form-data")) {
+      const form = await c.req.raw.formData();
+      const file = form.get("file");
+      if (!(file instanceof File)) return c.json({ error: "no_file" }, 400);
+      if (file.size > 5 * 1024 * 1024) return c.json({ error: "file_too_large" }, 413);
+      csvText = await file.text();
+    } else {
+      csvText = await c.req.text();
+    }
+
+    if (!csvText.trim()) return c.json({ error: "empty_csv" }, 400);
+
+    const { headers, rows } = parseCsv(csvText);
+    if (!headers.includes("business_name")) {
+      return c.json({ error: "missing_business_name_column", headers }, 400);
+    }
+
+    let inserted = 0;
+    const errors: Array<{ row: number; message: string }> = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const raw = rows[i] ?? {};
+      const candidate: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(raw)) {
+        if (v === "") continue;
+        // Coerce numeric fields that the spreadsheet stored as strings.
+        if (k === "google_rating" || k === "google_review_count") {
+          const num = Number(v);
+          if (!Number.isFinite(num)) continue;
+          candidate[k] = num;
+        } else {
+          candidate[k] = v;
+        }
+      }
+      const parsed = LeadCreate.safeParse(candidate);
+      if (!parsed.success) {
+        errors.push({
+          row: i + 2, // +1 for 1-indexed, +1 for header row
+          message: parsed.error.issues
+            .slice(0, 2)
+            .map((iss) => `${iss.path.join(".") || "?"}: ${iss.message}`)
+            .join("; "),
+        });
+        continue;
+      }
+      try {
+        await createLead(c.env.DB, parsed.data as LeadCreateT);
+        inserted += 1;
+      } catch (err) {
+        errors.push({
+          row: i + 2,
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+
+    return c.json({
+      total_rows: rows.length,
+      inserted,
+      errors: errors.slice(0, 50), // cap so the response stays small
+      error_count: errors.length,
+    });
   });

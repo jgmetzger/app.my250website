@@ -121,9 +121,14 @@ export function LeadsListPage() {
             {data ? `${data.total.toLocaleString()} total` : "Loading…"}
           </p>
         </div>
-        <Link to="/leads/new" className="btn-primary text-sm">
-          + Add lead manually
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/leads/import" className="btn-secondary text-sm">
+            Import CSV
+          </Link>
+          <Link to="/leads/new" className="btn-primary text-sm">
+            + Add lead manually
+          </Link>
+        </div>
       </header>
 
       <div className="grid grid-cols-12 gap-6">

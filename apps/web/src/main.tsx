@@ -7,6 +7,7 @@ import { DashboardPage } from "./pages/DashboardPage.js";
 import { LeadsListPage } from "./pages/LeadsListPage.js";
 import { LeadDetailPage } from "./pages/LeadDetailPage.js";
 import { NewLeadPage } from "./pages/NewLeadPage.js";
+import { ImportLeadsPage } from "./pages/ImportLeadsPage.js";
 import { ScrapePage } from "./pages/ScrapePage.js";
 import { ScrapeRunStatusPage } from "./pages/ScrapeRunStatusPage.js";
 import { TemplatesPage } from "./pages/TemplatesPage.js";
@@ -27,6 +28,7 @@ ReactDOM.createRoot(root).render(
         <Route path="/dashboard" element={<Protected><DashboardPage /></Protected>} />
         <Route path="/leads" element={<Protected><LeadsListPage /></Protected>} />
         <Route path="/leads/new" element={<Protected><NewLeadPage /></Protected>} />
+        <Route path="/leads/import" element={<Protected><ImportLeadsPage /></Protected>} />
         <Route path="/leads/:id" element={<Protected><LeadDetailPage /></Protected>} />
         <Route path="/scrape" element={<Protected><ScrapePage /></Protected>} />
         <Route
