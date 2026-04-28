@@ -9,6 +9,12 @@ export const LeadStatusEnum = z.enum(LEAD_STATUSES as [string, ...string[]]);
 export const WebsiteStatusEnum = z.enum(WEBSITE_STATUSES as [string, ...string[]]);
 export const BusinessTypeEnum = z.enum(BUSINESS_TYPES as [string, ...string[]]);
 
+// Empty string -> null for the email field (HTML inputs send "" for cleared fields).
+const NullableEmail = z
+  .union([z.literal(""), z.string().email().max(200), z.null()])
+  .transform((v) => (v === "" ? null : v));
+
+// PATCH /api/leads/:id — every field optional (and most are nullable).
 export const LeadUpdate = z
   .object({
     business_name: z.string().min(1).max(300).optional(),
@@ -17,16 +23,37 @@ export const LeadUpdate = z
     city: z.string().max(120).nullable().optional(),
     region: z.string().max(120).nullable().optional(),
     postcode: z.string().max(20).nullable().optional(),
+    country: z.string().max(120).nullable().optional(),
     phone: z.string().max(40).nullable().optional(),
     website_url: z.string().max(500).nullable().optional(),
     website_status: WebsiteStatusEnum.nullable().optional(),
     social_handles: z.string().max(2000).nullable().optional(),
     google_rating: z.number().min(0).max(5).nullable().optional(),
     google_review_count: z.number().int().min(0).nullable().optional(),
-    email: z.string().email().max(200).nullable().optional(),
+    email: NullableEmail.optional(),
     email_source: z.string().max(120).nullable().optional(),
     notes: z.string().max(20000).nullable().optional(),
     status: LeadStatusEnum.optional(),
+  })
+  .strict();
+
+// POST /api/leads — manual create. business_name is required; everything else optional.
+export const LeadCreate = z
+  .object({
+    business_name: z.string().min(1).max(300),
+    business_type: BusinessTypeEnum.nullable().optional(),
+    address: z.string().max(500).nullable().optional(),
+    city: z.string().max(120).nullable().optional(),
+    region: z.string().max(120).nullable().optional(),
+    postcode: z.string().max(20).nullable().optional(),
+    country: z.string().max(120).nullable().optional(),
+    phone: z.string().max(40).nullable().optional(),
+    website_url: z.string().max(500).nullable().optional(),
+    google_rating: z.number().min(0).max(5).nullable().optional(),
+    google_review_count: z.number().int().min(0).nullable().optional(),
+    email: NullableEmail.optional(),
+    email_source: z.string().max(120).nullable().optional(),
+    notes: z.string().max(20000).nullable().optional(),
   })
   .strict();
 
@@ -88,6 +115,7 @@ export const LeadListQuery = z.object({
 
 export type LoginInputT = z.infer<typeof LoginInput>;
 export type LeadUpdateT = z.infer<typeof LeadUpdate>;
+export type LeadCreateT = z.infer<typeof LeadCreate>;
 export type StatusChangeInputT = z.infer<typeof StatusChangeInput>;
 export type NoteInputT = z.infer<typeof NoteInput>;
 export type ScrapeRunInputT = z.infer<typeof ScrapeRunInput>;
