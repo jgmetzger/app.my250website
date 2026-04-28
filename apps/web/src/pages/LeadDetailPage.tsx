@@ -11,6 +11,7 @@ import {
 } from "@app/shared";
 import { Layout } from "../components/Layout.js";
 import { StatusBadge, WebsiteBadge } from "../components/Badge.js";
+import { CallModal } from "../components/CallModal.js";
 import { FindEmailSidebar } from "../components/FindEmailSidebar.js";
 import { SendEmailModal } from "../components/SendEmailModal.js";
 import { api } from "../lib/api.js";
@@ -44,6 +45,7 @@ export function LeadDetailPage() {
   const [postingNote, setPostingNote] = useState(false);
   const [okToCall] = useState(isWithinUkCallingHours());
   const [showSendEmail, setShowSendEmail] = useState(false);
+  const [showCall, setShowCall] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -160,6 +162,14 @@ export function LeadDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowCall(true)}
+            disabled={!lead.phone}
+            className="btn-primary text-sm"
+            title={lead.phone ? "Call from browser" : "Add a phone number first"}
+          >
+            📞 Call
+          </button>
           <button
             onClick={() => setShowSendEmail(true)}
             disabled={!lead.email}
@@ -357,6 +367,17 @@ export function LeadDetailPage() {
           lead={lead}
           onClose={() => setShowSendEmail(false)}
           onSent={async () => {
+            const fresh = await api.get<DetailResponse>(`/api/leads/${leadId}`);
+            setData(fresh);
+          }}
+        />
+      ) : null}
+
+      {showCall ? (
+        <CallModal
+          lead={lead}
+          onClose={() => setShowCall(false)}
+          onLogged={async () => {
             const fresh = await api.get<DetailResponse>(`/api/leads/${leadId}`);
             setData(fresh);
           }}
