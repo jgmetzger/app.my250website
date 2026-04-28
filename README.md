@@ -152,6 +152,36 @@ Cloudflare resolves Worker routes before Pages, so `/api/*` hits the Worker and 
 - For browser-based outbound dialing you need a **TwiML App** (Voice → TwiML Apps → Create) with the **Voice Request URL** pointed at `https://app.my250website.com/api/webhooks/twilio/voice`. Put its SID in `TWILIO_TWIML_APP_SID`.
 - The browser SDK uses an **API Key + Secret** (Voice → API Keys → Create Standard) — that's what `TWILIO_API_KEY` / `TWILIO_API_SECRET` are for, *not* the account auth token.
 
+## Browser Rendering / scraping
+
+The scraper drives a real Chromium against `google.com/maps`. Two ways to host it:
+
+- **Cloudflare Browser Rendering** (default). On the Workers Paid plan, the
+  `BROWSER` binding in `wrangler.toml` is automatically wired up — no
+  additional config. Costs are pay-per-second of browser time.
+- **Browserless.io fallback**. Set `BROWSER_RENDERING_TOKEN` to a Browserless
+  token; the launcher will `puppeteer.connect()` to it instead. Free tier is
+  fine for low-volume use.
+
+Per-run options (`apps/web/src/pages/ScrapePage.tsx`):
+
+- `query` — sent verbatim to Maps (`/maps/search/<query>`)
+- `city`, `business_type` — recorded on the run + applied as defaults to the saved leads
+- `min_reviews` (default 10), `min_rating` (default 4.0) — filter applied **before** insert
+- All scraped leads are deduped against existing rows on `google_place_id`
+- Anything that already has a real (non-social) website is skipped
+
+**About selectors.** Google Maps changes its DOM regularly. Selectors live in
+one place — `apps/api/src/scrape/maps.ts` `SELECTORS` — and each one is named so
+"selector_timeout:results_feed" tells you which one to fix. Expect to tweak
+these after the first real run.
+
+**About time limits.** The Worker hands the scrape off to `ctx.waitUntil()`,
+which keeps it alive past the HTTP response, but the wall clock is still
+finite. The orchestrator persists progress every 10 successfully-extracted
+listings, so a timed-out run leaves partial results behind. Just re-run with
+the same query — duplicates are skipped automatically.
+
 ## Resend gotchas
 
 - Verify the sending domain `my250website.com` (Domains tab; add the printed DNS records).

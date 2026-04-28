@@ -96,7 +96,7 @@ export function DashboardPage() {
         <ul className="text-sm space-y-1 text-muted">
           <li>✓ Phase 1 — Foundation (auth, schema, deploy)</li>
           <li>✓ Phase 2 — Leads CRUD (list, detail, edit, status, notes)</li>
-          <li>· Phase 3 — Scraping</li>
+          <li>✓ Phase 3 — Scraping (Maps, classify, dedupe, run status)</li>
           <li>· Phase 4 — Email</li>
           <li>· Phase 5 — Calls</li>
           <li>· Phase 6 — Dashboard stats endpoint</li>
