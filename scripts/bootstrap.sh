@@ -11,7 +11,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
-WRANGLER_TOML="$ROOT/apps/api/wrangler.toml"
+WRANGLER_TOML="$ROOT/wrangler.toml"
 
 # --- helpers -----------------------------------------------------------------
 

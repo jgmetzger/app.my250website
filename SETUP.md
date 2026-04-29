@@ -140,8 +140,8 @@ https://app.my250website.com/api/webhooks/twilio/voice
 ## Things that go wrong
 
 **"missing wfbr-crm database"** — the script couldn't auto-detect the D1 id.
-Run `cd apps/api && npx wrangler d1 list`, find the row with `wfbr-crm`,
-copy the id, paste it into `apps/api/wrangler.toml` (replace
+Run `npx wrangler d1 list`, find the row with `wfbr-crm`, copy the id,
+paste it into `wrangler.toml` at the repo root (replace
 `REPLACE_WITH_D1_ID_FROM_WRANGLER_D1_CREATE`).
 
 **"forbidden" on /api/webhooks/twilio/voice** — the Twilio webhook signature
@@ -155,7 +155,7 @@ know which one to fix. Paste the error here and I'll update them.
 
 **"daily_cap_reached" when sending email** — you've hit the 15-emails-a-day
 limit. Wait until tomorrow, or change `DAILY_EMAIL_CAP` in
-`apps/api/wrangler.toml` and redeploy.
+`wrangler.toml` and redeploy.
 
 **Anything else** — paste it in the chat.
 

@@ -1,5 +1,5 @@
 name = "app-my250website-api"
-main = "src/index.ts"
+main = "apps/api/src/index.ts"
 compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
@@ -17,10 +17,10 @@ custom_domain = false
 binding = "DB"
 database_name = "wfbr-crm"
 database_id = "REPLACE_WITH_D1_ID_FROM_WRANGLER_D1_CREATE"
-migrations_dir = "../../migrations"
+migrations_dir = "migrations"
 
 # Cloudflare Browser Rendering (paid plan). Falls back to BROWSER_RENDERING_TOKEN
-# (Browserless.io) at runtime if this binding isn't available — see src/scrape/browser.ts.
+# (Browserless.io) at runtime if this binding isn't available — see apps/api/src/scrape/browser.ts.
 [browser]
 binding = "BROWSER"
 
