@@ -14,6 +14,25 @@ const app = new Hono<AppBindings>();
 // Health check — handy for uptime probes.
 app.get("/api/health", (c) => c.json({ ok: true, ts: Date.now() }));
 
+// Public feature-flag readout. Lets the frontend disable buttons cleanly
+// when an integration isn't configured yet (e.g. Twilio approval pending).
+// Carries no secrets — just booleans about whether the env vars exist.
+app.get("/api/config", (c) => {
+  const e = c.env;
+  return c.json({
+    features: {
+      twilio:
+        Boolean(e.TWILIO_ACCOUNT_SID) &&
+        Boolean(e.TWILIO_API_KEY) &&
+        Boolean(e.TWILIO_API_SECRET) &&
+        Boolean(e.TWILIO_TWIML_APP_SID) &&
+        Boolean(e.TWILIO_PHONE_NUMBER),
+      resend: Boolean(e.RESEND_API_KEY),
+      resend_webhook_signed: Boolean(e.RESEND_WEBHOOK_SECRET),
+    },
+  });
+});
+
 // Public auth + webhooks (Twilio/Resend sign their own requests; we verify in phase 4+).
 app.route("/api/auth", authRoutes);
 app.route("/api/webhooks", webhookRoutes);

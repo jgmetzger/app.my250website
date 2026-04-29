@@ -129,20 +129,44 @@ green "✓ Migrations applied (idempotent — safe to re-run)"
 # --- 4. Worker secrets -------------------------------------------------------
 
 step "Worker secrets"
-echo "We'll prompt you for each secret. Skip any you don't have yet —"
-echo "you can re-run this script or use 'wrangler secret put' later."
+echo "We'll prompt you for each secret. Required vs optional:"
+echo "  REQUIRED:    APP_PASSWORD, JWT_SECRET"
+echo "  RECOMMENDED: RESEND_API_KEY (for email)"
+echo "  OPTIONAL:    All TWILIO_* (calls — UK number approval takes a few days,"
+echo "                              skip and add later when approved)"
+echo "  OPTIONAL:    RESEND_WEBHOOK_SECRET (signed delivery events)"
+echo
+echo "Answer 'n' to skip any. The Worker tolerates missing secrets — features"
+echo "without their secrets just show as disabled in the UI."
 echo
 
+bold "── REQUIRED ──"
 prompt_secret APP_PASSWORD       "The single login password for the CRM."
 prompt_secret JWT_SECRET         "Any random 32+ char string. (Tip: openssl rand -hex 32)"
-prompt_secret RESEND_API_KEY     "From resend.com → API Keys."
+
+echo
+bold "── EMAIL (Resend) — recommended ──"
+prompt_secret RESEND_API_KEY        "From resend.com → API Keys."
 prompt_secret RESEND_WEBHOOK_SECRET "Optional. From resend.com → Webhooks (starts whsec_)."
-prompt_secret TWILIO_ACCOUNT_SID "From twilio.com console (account dashboard, top right)."
-prompt_secret TWILIO_AUTH_TOKEN  "From twilio.com console (next to Account SID)."
-prompt_secret TWILIO_API_KEY     "From Voice → API Keys. Create a Standard key."
-prompt_secret TWILIO_API_SECRET  "From the same key (only shown once)."
-prompt_secret TWILIO_TWIML_APP_SID "From Voice → TwiML Apps. SEE NOTE BELOW."
-prompt_secret TWILIO_PHONE_NUMBER "Your purchased UK number, e.g. +441234567890."
+
+echo
+bold "── CALLS (Twilio) — skip if your UK number isn't approved yet ──"
+echo "    UK Twilio number purchase requires regulatory address verification,"
+echo "    which usually takes 1–3 days. You can deploy the rest of the app now"
+echo "    and add Twilio later by re-running this script — duplicates are fine,"
+echo "    'wrangler secret put' just overwrites."
+echo
+if confirm "Set Twilio secrets now? (n = skip, add later)"; then
+  prompt_secret TWILIO_ACCOUNT_SID    "From twilio.com console (account dashboard, top right)."
+  prompt_secret TWILIO_AUTH_TOKEN     "From twilio.com console (next to Account SID)."
+  prompt_secret TWILIO_API_KEY        "From Voice → API Keys. Create a Standard key."
+  prompt_secret TWILIO_API_SECRET     "From the same key (only shown once)."
+  prompt_secret TWILIO_TWIML_APP_SID  "From Voice → TwiML Apps. SEE NOTE BELOW."
+  prompt_secret TWILIO_PHONE_NUMBER   "Your purchased UK number, e.g. +441234567890."
+else
+  yellow "  Skipped Twilio. The Call button will be disabled until you re-run"
+  yellow "  this script (or 'wrangler secret put TWILIO_*') and redeploy."
+fi
 
 # --- 5. Deploy ---------------------------------------------------------------
 

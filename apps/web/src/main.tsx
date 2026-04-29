@@ -13,6 +13,7 @@ import { ScrapePage } from "./pages/ScrapePage.js";
 import { ScrapeRunStatusPage } from "./pages/ScrapeRunStatusPage.js";
 import { TemplatesPage } from "./pages/TemplatesPage.js";
 import { RequireAuth } from "./auth/RequireAuth.js";
+import { ConfigProvider } from "./lib/config.js";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("missing #root");
@@ -23,6 +24,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
+    <ConfigProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -41,5 +43,6 @@ ReactDOM.createRoot(root).render(
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
+    </ConfigProvider>
   </React.StrictMode>,
 );

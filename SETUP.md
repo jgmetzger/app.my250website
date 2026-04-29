@@ -40,15 +40,25 @@ the keys later.
 3. Wait until Resend shows the domain as "Verified".
 4. API Keys → Create API Key → save the `re_...` value.
 
-### Twilio (pay-as-you-go, ~£1/mo for the number + a few pence per call)
+### Twilio — OPTIONAL, skip if approval is pending
+You can deploy the whole app **without Twilio** and add it later. The Call
+button on lead detail just shows as disabled until Twilio is configured.
+
+UK Twilio numbers require regulatory address verification — Twilio asks
+for a passport or utility bill and approves it in 1–3 days. While you're
+waiting, do the rest of the setup. When approved, re-run
+`./scripts/bootstrap.sh` and answer **y** to the Twilio prompts; the
+script will only ask about the secrets you skipped.
+
+If you're ready to do Twilio now:
 1. <https://www.twilio.com/try-twilio>
 2. Verify your email + phone.
 3. **Console → Account Dashboard** — copy `Account SID` and `Auth Token`.
 4. **Voice → API Keys** → "Create API Key" → Standard. Copy the SID and Secret
    (Secret is shown ONCE; save it now).
 5. **Phone Numbers → Buy a number** — pick a UK number with Voice capability.
-   You will need to upload an address proof (passport / utility bill); approval
-   takes a day or two. The number costs ~£1/month.
+   You will need to upload an address proof (passport / utility bill);
+   approval takes 1–3 days. The number costs ~£1/month.
 6. **Voice → TwiML Apps** → "Create new TwiML App". Friendly name "WFBR CRM".
    Voice Request URL: `https://app.my250website.com/api/webhooks/twilio/voice`
    (HTTP POST). Save and copy the SID.
@@ -101,6 +111,29 @@ Open `https://app.my250website.com/login` and sign in with the
 
 If you get a Cloudflare error page instead, the routing isn't right yet —
 paste the error in the chat.
+
+---
+
+## Adding Twilio later
+
+When your UK number gets approved, just run the bootstrap script again:
+
+```bash
+./scripts/bootstrap.sh
+```
+
+When it gets to the "Set Twilio secrets now?" prompt, answer **y** and
+paste each value. It will set the secrets and re-deploy the Worker. The
+Call button on the lead detail page becomes active immediately — no
+further code changes needed.
+
+You'll also need to confirm the Twilio TwiML App's Voice Request URL is:
+
+```
+https://app.my250website.com/api/webhooks/twilio/voice
+```
+
+(In the Twilio console: Voice → TwiML Apps → your app → Voice Configuration.)
 
 ---
 

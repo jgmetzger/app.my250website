@@ -15,6 +15,7 @@ import { CallModal } from "../components/CallModal.js";
 import { FindEmailSidebar } from "../components/FindEmailSidebar.js";
 import { SendEmailModal } from "../components/SendEmailModal.js";
 import { api } from "../lib/api.js";
+import { useConfig } from "../lib/config.js";
 import { formatDateTime, formatRelative, isWithinUkCallingHours } from "../lib/format.js";
 
 interface DetailResponse {
@@ -37,6 +38,7 @@ export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const leadId = Number(id);
   const navigate = useNavigate();
+  const config = useConfig();
   const [data, setData] = useState<DetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,17 +166,29 @@ export function LeadDetailPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowCall(true)}
-            disabled={!lead.phone}
+            disabled={!lead.phone || !config.features.twilio}
             className="btn-primary text-sm"
-            title={lead.phone ? "Call from browser" : "Add a phone number first"}
+            title={
+              !config.features.twilio
+                ? "Calling not active yet — set Twilio secrets and redeploy"
+                : lead.phone
+                  ? "Call from browser"
+                  : "Add a phone number first"
+            }
           >
             📞 Call
           </button>
           <button
             onClick={() => setShowSendEmail(true)}
-            disabled={!lead.email}
+            disabled={!lead.email || !config.features.resend}
             className="btn-primary text-sm"
-            title={lead.email ? "Send email" : "Add an email first"}
+            title={
+              !config.features.resend
+                ? "Email not active yet — set RESEND_API_KEY and redeploy"
+                : lead.email
+                  ? "Send email"
+                  : "Add an email first"
+            }
           >
             ✉️ Send email
           </button>
