@@ -4,6 +4,12 @@ compatibility_date = "2024-09-25"
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
+# Build the React frontend before bundling the Worker. wrangler runs this
+# automatically before every `wrangler deploy` / `versions upload`, so the
+# Cloudflare build pipeline doesn't need a separate Build command.
+[build]
+command = "pnpm build:web"
+
 [vars]
 SENDER_EMAIL = "james@my250website.com"
 SENDER_NAME = "James Metzger"
