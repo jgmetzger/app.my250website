@@ -55,6 +55,18 @@ app.onError((err, c) => {
   return c.json({ error: "internal_error", message: err.message }, 500);
 });
 
-app.notFound((c) => c.json({ error: "not_found", path: new URL(c.req.url).pathname }, 404));
+app.notFound(async (c) => {
+  const path = new URL(c.req.url).pathname;
+  // /api/* with no matching route really is a 404.
+  if (path.startsWith("/api/")) {
+    return c.json({ error: "not_found", path }, 404);
+  }
+  // Everything else: hand off to the static-assets binding so the React SPA
+  // can handle client-side routing (e.g. /login, /leads/123).
+  if (c.env.ASSETS) {
+    return c.env.ASSETS.fetch(c.req.raw);
+  }
+  return c.json({ error: "not_found", path }, 404);
+});
 
 export default app;

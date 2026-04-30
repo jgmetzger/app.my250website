@@ -12,6 +12,14 @@ DAILY_EMAIL_CAP = "15"
 [observability]
 enabled = true
 
+# Static assets — serves the React frontend (apps/web/dist) at every URL
+# that isn't /api/*. Single deploy, single domain. Requires `pnpm build:web`
+# to have run before `wrangler deploy` so apps/web/dist exists.
+[assets]
+directory = "apps/web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
 # ---------------------------------------------------------------------------
 # OPTIONAL BLOCKS — uncomment only AFTER each precondition is met.
 # Until then they're commented so the Worker deploys successfully on a fresh

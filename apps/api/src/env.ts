@@ -2,6 +2,7 @@
 export interface Env {
   DB: D1Database;
   BROWSER?: Fetcher;
+  ASSETS?: Fetcher;
 
   // vars
   SENDER_EMAIL: string;
