@@ -94,7 +94,7 @@ npx wrangler login
 
 # 3. Create the D1 database
 pnpm db:create
-# → Copy the printed `database_id` into apps/api/wrangler.toml ([[d1_databases]] block).
+# → Copy the printed `database_id` into wrangler.toml ([[d1_databases]] block).
 
 # 4. Run migrations (remote; `:local` variant for `wrangler dev`)
 pnpm db:migrate
@@ -149,7 +149,7 @@ pnpm deploy:web   # uploads apps/web/dist to project "app-my250website"
 
 ### Custom domain wiring
 
-The Worker route in `apps/api/wrangler.toml` claims `app.my250website.com/api/*`.
+The Worker route in `wrangler.toml` (repo root) claims `app.my250website.com/api/*`.
 The Pages project must be bound to `app.my250website.com` for everything else.
 
 In the Cloudflare dashboard:
