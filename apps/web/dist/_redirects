@@ -1,4 +1,0 @@
-# Cloudflare Pages: SPA fallback — every non-asset path serves index.html.
-# /api/* is handled by the Worker via the route in wrangler.toml; Pages doesn't
-# proxy it, so don't add a rewrite for it here.
-/*    /index.html   200
