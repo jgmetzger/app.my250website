@@ -166,17 +166,15 @@ export function LeadDetailPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setShowCall(true)}
-            disabled={!lead.phone || !config.features.twilio}
+            disabled={!lead.phone}
             className="btn-primary text-sm"
             title={
-              !config.features.twilio
-                ? "Calling not active yet — set Twilio secrets and redeploy"
-                : lead.phone
-                  ? "Call from browser"
-                  : "Add a phone number first"
+              lead.phone
+                ? "Log a call you made from your phone"
+                : "Add a phone number first"
             }
           >
-            📞 Call
+            📞 Log call
           </button>
           <button
             onClick={() => setShowSendEmail(true)}
