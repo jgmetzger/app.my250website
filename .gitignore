@@ -1,6 +1,15 @@
-# wrangler files
+node_modules
+dist
+!apps/web/dist
+*.tsbuildinfo
 .wrangler
 .dev.vars*
 !.dev.vars.example
 .env*
 !.env.example
+*.log
+.DS_Store
+.vscode
+.idea
+coverage
+node-compile-cache

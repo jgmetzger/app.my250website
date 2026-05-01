@@ -19,7 +19,8 @@
     "db:migrate": "wrangler d1 execute wfbr-crm --file=migrations/0001_init.sql --remote",
     "db:migrate:local": "wrangler d1 execute wfbr-crm --file=migrations/0001_init.sql --local",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "postinstall": "pnpm build:web"
   },
   "devDependencies": {
     "typescript": "^5.5.4",
