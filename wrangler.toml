@@ -44,22 +44,16 @@ not_found_handling = "single-page-application"
 # custom_domain = false
 
 # 2) D1 DATABASE
-#    Precondition: create the database in the dashboard
-#                  (Workers & Pages → D1 → Create database "wfbr-crm").
-#    Copy the database_id it shows you, paste it below, uncomment.
-#
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "wfbr-crm"
-# database_id = "PASTE_THE_REAL_UUID_HERE"
-# migrations_dir = "migrations"
+[[d1_databases]]
+binding = "DB"
+database_name = "wfbr-crm"
+database_id = "91b0227a-e781-469e-a264-811e285d6e93"
+migrations_dir = "migrations"
 
 # 3) BROWSER RENDERING (for the Google Maps scraper)
-#    Precondition: Workers Paid plan ($5/mo). Workers → Plans → Workers Paid.
-#    Then uncomment:
-#
-# [browser]
-# binding = "BROWSER"
+#    Requires Workers Paid plan ($5/mo). Now active.
+[browser]
+binding = "BROWSER"
 
 # Secrets are set in the dashboard, NOT in this file:
 #   Workers & Pages → app-my250website-api → Settings → Variables and Secrets
