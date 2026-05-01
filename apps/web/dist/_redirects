@@ -1,0 +1,5 @@
+# Intentionally empty: SPA fallback + /api routing are handled by the Worker
+# (apps/api/src/index.ts notFound handler delegating to env.ASSETS) and the
+# wrangler.toml [assets] not_found_handling = "single-page-application" setting.
+# Committing an empty file here prevents Cloudflare's framework auto-detection
+# from injecting a redirect rule that gets rejected as an infinite loop.
