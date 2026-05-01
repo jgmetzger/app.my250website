@@ -2,8 +2,7 @@ import { classifyWebsite } from "@app/shared";
 import type { Env } from "../env.js";
 import { upsertScrapedLead } from "../repos/leads.js";
 import { finishScrapeRun, updateScrapeRunProgress } from "../repos/scrape_runs.js";
-import { openBrowser } from "./browser.js";
-import { scrapeMaps, type ScrapedListing } from "./maps.js";
+import { searchPlaces, type PlacesSearchListing } from "./places.js";
 
 export interface RunScrapeInput {
   runId: number;
@@ -17,7 +16,7 @@ export interface RunScrapeInput {
 }
 
 /**
- * Background entrypoint. Drives the headless browser, applies filters + dedupe
+ * Background entrypoint. Hits the Google Places API, applies filters + dedupe
  * per chunk, persists progress, and finalises the scrape_runs row when done.
  *
  * Honours the spec's filtering rules:
@@ -32,14 +31,22 @@ export async function runScrape(env: Env, input: RunScrapeInput): Promise<void> 
   let newLeadsAdded = 0;
   let duplicatesSkipped = 0;
 
-  let browser: Awaited<ReturnType<typeof openBrowser>> | null = null;
-  try {
-    browser = await openBrowser(env);
+  if (!env.GOOGLE_PLACES_API_KEY) {
+    await finishScrapeRun(
+      env.DB,
+      runId,
+      "failed",
+      "GOOGLE_PLACES_API_KEY not set — add it as a Worker secret and redeploy.",
+    );
+    return;
+  }
 
-    await scrapeMaps(browser, {
+  try {
+    await searchPlaces(env.GOOGLE_PLACES_API_KEY, {
       query: input.query,
       maxResults: input.max_results ?? 100,
       chunkSize: 10,
+      regionCode: "GB",
       onChunk: async (listings) => {
         for (const listing of listings) {
           resultsFound += 1;
@@ -77,19 +84,16 @@ export async function runScrape(env: Env, input: RunScrapeInput): Promise<void> 
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("scrape_failed", { runId, message });
-    // Persist final counts before marking failed.
     await updateScrapeRunProgress(env.DB, runId, {
       results_found: resultsFound,
       new_leads_added: newLeadsAdded,
       duplicates_skipped: duplicatesSkipped,
     }).catch(() => undefined);
     await finishScrapeRun(env.DB, runId, "failed", message).catch(() => undefined);
-  } finally {
-    await browser?.close().catch(() => undefined);
   }
 }
 
-function shouldKeep(listing: ScrapedListing, input: RunScrapeInput): boolean {
+function shouldKeep(listing: PlacesSearchListing, input: RunScrapeInput): boolean {
   if ((listing.google_review_count ?? 0) < input.min_reviews) return false;
   if ((listing.google_rating ?? 0) < input.min_rating) return false;
   if (classifyWebsite(listing.website_url) === "real") return false;
