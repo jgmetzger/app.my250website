@@ -50,10 +50,14 @@ database_name = "wfbr-crm"
 database_id = "91b0227a-e781-469e-a264-811e285d6e93"
 migrations_dir = "migrations"
 
-# 3) BROWSER RENDERING (for the Google Maps scraper)
-#    Requires Workers Paid plan ($5/mo). Now active.
-[browser]
-binding = "BROWSER"
+# 3) BROWSER RENDERING — no longer used.
+# Scraping moved from headless Chromium to the Google Places API
+# (see apps/api/src/scrape/places.ts), which is faster, more reliable,
+# and free up to ~6,000 lookups/month under Google Cloud's $200/mo
+# free credit. Workers Paid plan no longer required for this app.
+#
+# [browser]
+# binding = "BROWSER"
 
 # Secrets are set in the dashboard, NOT in this file:
 #   Workers & Pages → app-my250website-api → Settings → Variables and Secrets

@@ -22,6 +22,7 @@ export interface Env {
   TWILIO_TWIML_APP_SID: string;
   TWILIO_PHONE_NUMBER: string;
   BROWSER_RENDERING_TOKEN?: string;
+  GOOGLE_PLACES_API_KEY?: string;
 }
 
 // Hono context variables — populated by middleware.
