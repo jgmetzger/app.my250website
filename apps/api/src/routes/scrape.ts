@@ -9,6 +9,40 @@ import {
 import { runScrape } from "../scrape/run.js";
 
 export const scrapeRoutes = new Hono<AppBindings>()
+  // Quick connectivity test: hits Places API with a tiny query and returns the
+  // raw response so we can see exactly what Google says when scrape jobs hang.
+  // Useful when a background runScrape silently dies and never writes a failure
+  // row to D1. Authed (mounted under requireAuth in index.ts).
+  .get("/probe", async (c) => {
+    const key = c.env.GOOGLE_PLACES_API_KEY;
+    if (!key) {
+      return c.json({ ok: false, where: "secret_check", error: "GOOGLE_PLACES_API_KEY not set" }, 500);
+    }
+    try {
+      const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": key,
+          "X-Goog-FieldMask": "places.id,places.displayName",
+        },
+        body: JSON.stringify({ textQuery: "pubs in Bath", pageSize: 1 }),
+      });
+      const text = await res.text();
+      return c.json({
+        ok: res.ok,
+        status: res.status,
+        body_preview: text.slice(0, 1000),
+      });
+    } catch (err) {
+      return c.json({
+        ok: false,
+        where: "fetch_threw",
+        error: err instanceof Error ? err.message : String(err),
+      }, 500);
+    }
+  })
+
   .post("/run", async (c) => {
     const body = await c.req.json().catch(() => ({}));
     const parsed = ScrapeRunInput.safeParse(body);
