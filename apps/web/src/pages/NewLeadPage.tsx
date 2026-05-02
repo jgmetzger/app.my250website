@@ -11,12 +11,18 @@ export function NewLeadPage() {
   const [form, setForm] = useState({
     business_name: "",
     business_type: "" as BusinessType | "",
-    city: "",
     address: "",
+    city: "",
+    region: "",
     postcode: "",
+    country: "United Kingdom",
     phone: "",
     website_url: "",
+    google_maps_url: "",
+    google_rating: "",
+    google_review_count: "",
     email: "",
+    email_source: "",
     notes: "",
   });
 
@@ -29,11 +35,22 @@ export function NewLeadPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const payload = Object.fromEntries(
-        Object.entries(form)
-          .map(([k, v]) => [k, typeof v === "string" && v.trim() === "" ? undefined : v])
-          .filter(([, v]) => v !== undefined),
-      );
+      // Build payload — drop empty strings, parse numerics.
+      const payload: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(form)) {
+        if (typeof v === "string" && v.trim() === "") continue;
+        if (k === "google_rating") {
+          const n = parseFloat(v as string);
+          if (Number.isFinite(n)) payload[k] = n;
+          continue;
+        }
+        if (k === "google_review_count") {
+          const n = parseInt(v as string, 10);
+          if (Number.isFinite(n)) payload[k] = n;
+          continue;
+        }
+        payload[k] = v;
+      }
       const res = await api.post<{ lead: Lead }>("/api/leads", payload);
       navigate(`/leads/${res.lead.id}`, { replace: true });
     } catch (e) {
@@ -117,7 +134,18 @@ export function NewLeadPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="label" htmlFor="region">
+              Region / County
+            </label>
+            <input
+              id="region"
+              className="input"
+              value={form.region}
+              onChange={(e) => set("region", e.target.value)}
+            />
+          </div>
           <div>
             <label className="label" htmlFor="postcode">
               Postcode
@@ -130,6 +158,20 @@ export function NewLeadPage() {
             />
           </div>
           <div>
+            <label className="label" htmlFor="country">
+              Country
+            </label>
+            <input
+              id="country"
+              className="input"
+              value={form.country}
+              onChange={(e) => set("country", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
             <label className="label" htmlFor="phone">
               Phone
             </label>
@@ -140,6 +182,31 @@ export function NewLeadPage() {
               onChange={(e) => set("phone", e.target.value)}
             />
           </div>
+          <div>
+            <label className="label" htmlFor="email">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              className="input"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="email_source">
+            Email source
+          </label>
+          <input
+            id="email_source"
+            className="input"
+            placeholder="Where you found the email — Facebook bio, Instagram, contact page…"
+            value={form.email_source}
+            onChange={(e) => set("email_source", e.target.value)}
+          />
         </div>
 
         <div>
@@ -156,16 +223,49 @@ export function NewLeadPage() {
         </div>
 
         <div>
-          <label className="label" htmlFor="email">
-            Email
+          <label className="label" htmlFor="google_maps_url">
+            Google Maps URL
           </label>
           <input
-            id="email"
-            type="email"
+            id="google_maps_url"
             className="input"
-            value={form.email}
-            onChange={(e) => set("email", e.target.value)}
+            placeholder="https://maps.app.goo.gl/… or https://www.google.com/maps/place/…"
+            value={form.google_maps_url}
+            onChange={(e) => set("google_maps_url", e.target.value)}
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="label" htmlFor="google_rating">
+              Google rating
+            </label>
+            <input
+              id="google_rating"
+              type="number"
+              min={0}
+              max={5}
+              step={0.1}
+              className="input"
+              placeholder="4.5"
+              value={form.google_rating}
+              onChange={(e) => set("google_rating", e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="google_review_count">
+              Review count
+            </label>
+            <input
+              id="google_review_count"
+              type="number"
+              min={0}
+              className="input"
+              placeholder="284"
+              value={form.google_review_count}
+              onChange={(e) => set("google_review_count", e.target.value)}
+            />
+          </div>
         </div>
 
         <div>

@@ -2,7 +2,10 @@ import { Hono } from "hono";
 import { ScrapeRunInput } from "@app/shared";
 import type { AppBindings } from "../env.js";
 import {
+  cancelScrapeRun,
+  clearFinishedScrapeRuns,
   createScrapeRun,
+  deleteScrapeRun,
   getScrapeRun,
   listScrapeRuns,
 } from "../repos/scrape_runs.js";
@@ -84,4 +87,24 @@ export const scrapeRoutes = new Hono<AppBindings>()
     const run = await getScrapeRun(c.env.DB, id);
     if (!run) return c.json({ error: "not_found" }, 404);
     return c.json({ run });
+  })
+
+  .post("/runs/:id/cancel", async (c) => {
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) return c.json({ error: "invalid_id" }, 400);
+    const cancelled = await cancelScrapeRun(c.env.DB, id);
+    return c.json({ ok: true, cancelled });
+  })
+
+  .delete("/runs/:id", async (c) => {
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) return c.json({ error: "invalid_id" }, 400);
+    const deleted = await deleteScrapeRun(c.env.DB, id);
+    if (!deleted) return c.json({ error: "not_found" }, 404);
+    return c.json({ ok: true });
+  })
+
+  .delete("/runs", async (c) => {
+    const removed = await clearFinishedScrapeRuns(c.env.DB);
+    return c.json({ ok: true, removed });
   });
