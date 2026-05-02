@@ -11,7 +11,7 @@ workers_dev = true
 command = "pnpm build:web"
 
 [vars]
-SENDER_EMAIL = "james@my250website.com"
+SENDER_EMAIL = "hi@my250website.com"
 SENDER_NAME = "James Metzger"
 DAILY_EMAIL_CAP = "15"
 
