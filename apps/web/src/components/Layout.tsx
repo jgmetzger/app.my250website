@@ -34,8 +34,45 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <header className="border-b border-ink/10 bg-cream/80 backdrop-blur sticky top-0 z-20">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-4">
-          <NavLink to="/dashboard" className="font-serif text-2xl">
-            <span className="italic">WFBR</span> CRM
+          <NavLink
+            to="/dashboard"
+            className="flex items-center gap-2 font-serif text-2xl text-ink"
+          >
+            <svg
+              width="28"
+              height="25"
+              viewBox="0 0 90 80"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 72V34C12 19.6 21.6 8 34 8C46.4 8 56 19.6 56 34V72"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M34 72V34C34 19.6 43.6 8 56 8C68.4 8 78 19.6 78 34V72"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity="0.3"
+              />
+              <line
+                x1="12"
+                y1="72"
+                x2="78"
+                y2="72"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span>
+              <span className="italic">WFBR</span> CRM
+            </span>
           </NavLink>
 
           {/* Desktop nav */}
