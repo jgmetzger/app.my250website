@@ -7,6 +7,7 @@ export interface ResendSendInput {
   to: string;
   subject: string;
   text: string;
+  html?: string;
   /** Tags get echoed back on webhook events — used to correlate to a lead. */
   tags?: Array<{ name: string; value: string }>;
 }
@@ -27,6 +28,7 @@ export async function resendSend(input: ResendSendInput): Promise<ResendSendResu
       to: input.to,
       subject: input.subject,
       text: input.text,
+      html: input.html,
       tags: input.tags,
     }),
   });
