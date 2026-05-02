@@ -13,6 +13,7 @@ import {
 import { getLeadById, updateLead } from "../repos/leads.js";
 import { resendSend } from "../lib/resend.js";
 import { leadVars, renderTemplate } from "../lib/template.js";
+import { appendTextSignature, buildEmailHtml } from "../lib/email_html.js";
 
 export const emailRoutes = new Hono<AppBindings>()
   .get("/templates", async (c) => {
@@ -79,7 +80,9 @@ export const emailRoutes = new Hono<AppBindings>()
 
     const vars = leadVars(lead);
     const subject = parsed.data.subject_override ?? renderTemplate(template.subject, vars);
-    const text = parsed.data.body_override ?? renderTemplate(template.body, vars);
+    const bodyText = parsed.data.body_override ?? renderTemplate(template.body, vars);
+    const text = appendTextSignature(bodyText);
+    const html = buildEmailHtml(bodyText);
 
     if (!c.env.RESEND_API_KEY) return c.json({ error: "resend_not_configured" }, 503);
 
@@ -91,6 +94,7 @@ export const emailRoutes = new Hono<AppBindings>()
         to: lead.email,
         subject,
         text,
+        html,
         tags: [
           { name: "lead_id", value: String(lead.id) },
           { name: "template_id", value: String(template.id) },
