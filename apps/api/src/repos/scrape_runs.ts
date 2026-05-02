@@ -73,3 +73,41 @@ export async function finishScrapeRun(
     .bind(status, errorMessage ?? null, id)
     .run();
 }
+
+/**
+ * Force-mark a run as failed. Used when the background worker died without
+ * writing a result, so the user can retry without the row sitting at "running"
+ * forever. No-op if the run already finished.
+ */
+export async function cancelScrapeRun(
+  db: D1Database,
+  id: number,
+): Promise<boolean> {
+  const result = await db
+    .prepare(
+      `UPDATE scrape_runs
+         SET status = 'failed',
+             error_message = COALESCE(error_message, 'Cancelled by user'),
+             completed_at = unixepoch()
+       WHERE id = ? AND status = 'running'`,
+    )
+    .bind(id)
+    .run();
+  return Number(result.meta.changes ?? 0) > 0;
+}
+
+export async function deleteScrapeRun(db: D1Database, id: number): Promise<boolean> {
+  const result = await db
+    .prepare(`DELETE FROM scrape_runs WHERE id = ?`)
+    .bind(id)
+    .run();
+  return Number(result.meta.changes ?? 0) > 0;
+}
+
+/** Delete every finished (completed/failed) run. Leaves currently-running rows alone. */
+export async function clearFinishedScrapeRuns(db: D1Database): Promise<number> {
+  const result = await db
+    .prepare(`DELETE FROM scrape_runs WHERE status IN ('completed', 'failed')`)
+    .run();
+  return Number(result.meta.changes ?? 0);
+}

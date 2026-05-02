@@ -240,28 +240,62 @@ export function LeadDetailPage() {
               saving={savingField === "address"}
               onSave={(v) => patch("address", v || null)}
             />
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="label">Google rating</div>
-                <div className="text-ink">
-                  {lead.google_rating != null
-                    ? `${lead.google_rating.toFixed(1)} (${lead.google_review_count ?? 0})`
-                    : "—"}
-                </div>
-              </div>
-              {lead.google_maps_url ? (
-                <div>
-                  <div className="label">Maps</div>
-                  <a
-                    href={lead.google_maps_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-ink underline"
-                  >
-                    Open Google Maps ↗
-                  </a>
-                </div>
-              ) : null}
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                label="Region / County"
+                value={lead.region ?? ""}
+                saving={savingField === "region"}
+                onSave={(v) => patch("region", v || null)}
+              />
+              <Field
+                label="Country"
+                value={lead.country ?? ""}
+                saving={savingField === "country"}
+                onSave={(v) => patch("country", v || null)}
+              />
+            </div>
+            <Field
+              label="Google Maps URL"
+              placeholder="https://maps.app.goo.gl/…"
+              value={lead.google_maps_url ?? ""}
+              saving={savingField === "google_maps_url"}
+              onSave={(v) => patch("google_maps_url", v || null)}
+            />
+            {lead.google_maps_url ? (
+              <a
+                href={lead.google_maps_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-ink/70 underline"
+              >
+                Open Google Maps ↗
+              </a>
+            ) : null}
+            <div className="grid grid-cols-2 gap-3">
+              <Field
+                label="Google rating"
+                type="number"
+                value={lead.google_rating != null ? String(lead.google_rating) : ""}
+                saving={savingField === "google_rating"}
+                onSave={(v) => {
+                  if (v === "") return patch("google_rating", null);
+                  const n = parseFloat(v);
+                  if (Number.isFinite(n)) patch("google_rating", n);
+                }}
+              />
+              <Field
+                label="Review count"
+                type="number"
+                value={
+                  lead.google_review_count != null ? String(lead.google_review_count) : ""
+                }
+                saving={savingField === "google_review_count"}
+                onSave={(v) => {
+                  if (v === "") return patch("google_review_count", null);
+                  const n = parseInt(v, 10);
+                  if (Number.isFinite(n)) patch("google_review_count", n);
+                }}
+              />
             </div>
           </div>
 
@@ -303,7 +337,10 @@ export function LeadDetailPage() {
               onSave={(v) => patch("notes", v || null)}
             />
           </div>
+        </section>
 
+        {/* Right: pipeline + timeline + actions */}
+        <aside className="col-span-12 lg:col-span-5 space-y-6">
           <div className="card space-y-3">
             <h2 className="font-serif text-xl">Pipeline stage</h2>
             <div className="flex flex-wrap gap-2">
@@ -323,10 +360,6 @@ export function LeadDetailPage() {
               ))}
             </div>
           </div>
-        </section>
-
-        {/* Right: timeline + actions */}
-        <aside className="col-span-12 lg:col-span-5 space-y-6">
           <FindEmailSidebar lead={lead} />
           <div className="card space-y-3">
             <h2 className="font-serif text-xl">Add note</h2>

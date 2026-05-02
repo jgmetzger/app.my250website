@@ -97,11 +97,11 @@ export async function createLead(
     .prepare(
       `INSERT INTO leads (
          business_name, business_type, address, city, region, postcode, country,
-         phone, website_url, website_status,
+         phone, website_url, website_status, google_maps_url,
          google_rating, google_review_count,
          email, email_source, notes
        ) VALUES (?, ?, ?, ?, ?, ?, COALESCE(?, 'United Kingdom'),
-                 ?, ?, ?,
+                 ?, ?, ?, ?,
                  ?, ?,
                  ?, ?, ?)`,
     )
@@ -116,6 +116,7 @@ export async function createLead(
       input.phone ?? null,
       input.website_url ?? null,
       websiteStatus,
+      input.google_maps_url ?? null,
       input.google_rating ?? null,
       input.google_review_count ?? null,
       input.email ?? null,
