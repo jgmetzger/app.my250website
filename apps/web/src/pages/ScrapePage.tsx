@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BUSINESS_TYPES, type BusinessType, type ScrapeRun } from "@app/shared";
 import { Layout } from "../components/Layout.js";
 import { api } from "../lib/api.js";
-import { formatRelative } from "../lib/format.js";
+import { capitalize, formatRelative } from "../lib/format.js";
 
 interface ScrapeRunResponse {
   run_id: number;
@@ -192,7 +192,7 @@ export function ScrapePage() {
                       <option value="">— pick type —</option>
                       {BUSINESS_TYPES.map((t) => (
                         <option key={t} value={t}>
-                          {t}
+                          {capitalize(t)}
                         </option>
                       ))}
                     </select>

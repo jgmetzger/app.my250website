@@ -16,7 +16,7 @@ import { FindEmailSidebar } from "../components/FindEmailSidebar.js";
 import { SendEmailModal } from "../components/SendEmailModal.js";
 import { api } from "../lib/api.js";
 import { useConfig } from "../lib/config.js";
-import { formatDateTime, formatRelative, isWithinUkCallingHours } from "../lib/format.js";
+import { capitalize, formatDateTime, formatRelative, isWithinUkCallingHours } from "../lib/format.js";
 
 interface DetailResponse {
   lead: Lead;
@@ -216,7 +216,7 @@ export function LeadDetailPage() {
             <SelectField
               label="Type"
               value={lead.business_type ?? ""}
-              options={[["", "—"], ...BUSINESS_TYPES.map((t) => [t, t] as [string, string])]}
+              options={[["", "—"], ...BUSINESS_TYPES.map((t) => [t, capitalize(t)] as [string, string])]}
               saving={savingField === "business_type"}
               onSave={(v) => patch("business_type", v === "" ? null : (v as BusinessType))}
             />
