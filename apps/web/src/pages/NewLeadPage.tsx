@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { BUSINESS_TYPES, type BusinessType, type Lead } from "@app/shared";
 import { Layout } from "../components/Layout.js";
 import { api } from "../lib/api.js";
+import { capitalize } from "../lib/format.js";
 
 export function NewLeadPage() {
   const navigate = useNavigate();
@@ -104,7 +105,7 @@ export function NewLeadPage() {
               <option value="">—</option>
               {BUSINESS_TYPES.map((t) => (
                 <option key={t} value={t}>
-                  {t}
+                  {capitalize(t)}
                 </option>
               ))}
             </select>

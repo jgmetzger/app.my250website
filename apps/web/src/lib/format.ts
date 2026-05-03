@@ -34,3 +34,9 @@ export function isWithinUkCallingHours(now = new Date()): boolean {
   const hour = Number(fmt.format(now));
   return hour >= 9 && hour < 19;
 }
+
+/** "pub" -> "Pub", "gastropub" -> "Gastropub". Empty/null returns "". */
+export function capitalize(value: string | null | undefined): string {
+  if (!value) return "";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
