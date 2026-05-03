@@ -7,6 +7,7 @@ import {
   type BusinessType,
   type Lead,
   type LeadStatus,
+  type SocialHandles,
   type WebsiteStatus,
 } from "@app/shared";
 import { Layout } from "../components/Layout.js";
@@ -33,6 +34,36 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
   live: "Live",
   lost: "Lost",
 };
+
+const SOCIAL_PLATFORMS: Array<{
+  key: keyof SocialHandles;
+  label: string;
+  placeholder: string;
+}> = [
+  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/handle or @handle" },
+  { key: "facebook", label: "Facebook", placeholder: "https://facebook.com/page" },
+  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@handle or @handle" },
+  { key: "twitter", label: "Twitter / X", placeholder: "https://x.com/handle or @handle" },
+  { key: "linktree", label: "Linktree", placeholder: "https://linktr.ee/handle" },
+];
+
+function parseSocialHandles(s: string | null | undefined): SocialHandles {
+  if (!s) return {};
+  try {
+    const parsed = JSON.parse(s);
+    return typeof parsed === "object" && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function serializeSocialHandles(h: SocialHandles): string | null {
+  const cleaned: SocialHandles = {};
+  for (const [k, v] of Object.entries(h) as Array<[keyof SocialHandles, string | undefined]>) {
+    if (typeof v === "string" && v.trim() !== "") cleaned[k] = v.trim();
+  }
+  return Object.keys(cleaned).length === 0 ? null : JSON.stringify(cleaned);
+}
 
 export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -329,6 +360,44 @@ export function LeadDetailPage() {
             />
           </div>
 
+          <div className="card space-y-4">
+            <h2 className="font-serif text-xl">Social profiles</h2>
+            {SOCIAL_PLATFORMS.map(({ key, label, placeholder }) => {
+              const socials = parseSocialHandles(lead.social_handles);
+              const value = socials[key] ?? "";
+              return (
+                <div key={key}>
+                  <div className="flex items-center justify-between">
+                    <label className="label">{label}</label>
+                    {value && /^https?:\/\//i.test(value) ? (
+                      <a
+                        href={value}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-ink/60 hover:text-ink underline"
+                        title="Open in new tab"
+                      >
+                        Open ↗
+                      </a>
+                    ) : null}
+                  </div>
+                  <SocialField
+                    placeholder={placeholder}
+                    value={value}
+                    saving={savingField === "social_handles"}
+                    onSave={(v) => {
+                      const current = parseSocialHandles(lead.social_handles);
+                      const next: SocialHandles = { ...current };
+                      if (v.trim() === "") delete next[key];
+                      else next[key] = v.trim();
+                      patch("social_handles", serializeSocialHandles(next));
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
           <div className="card space-y-3">
             <h2 className="font-serif text-xl">Notes</h2>
             <TextareaField
@@ -490,6 +559,37 @@ function Field({ label, value, saving, type = "text", placeholder, onSave }: Fie
         disabled={saving}
       />
     </div>
+  );
+}
+
+function SocialField({
+  value,
+  saving,
+  placeholder,
+  onSave,
+}: {
+  value: string;
+  saving?: boolean;
+  placeholder?: string;
+  onSave: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => setDraft(value), [value]);
+  return (
+    <input
+      className="input"
+      placeholder={placeholder}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        if (draft !== value) onSave(draft);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        if (e.key === "Escape") setDraft(value);
+      }}
+      disabled={saving}
+    />
   );
 }
 
