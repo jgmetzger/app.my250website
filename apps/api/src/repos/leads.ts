@@ -88,6 +88,31 @@ export async function findByPlaceId(
   return one<Lead>(db.prepare(`SELECT * FROM leads WHERE google_place_id = ?`).bind(placeId));
 }
 
+/**
+ * Look a lead up by phone for inbound SMS / call routing. Twilio sends numbers
+ * in E.164 (+44…) but stored phones may have spaces / other formats; compare on
+ * the numeric tail to be tolerant.
+ */
+export async function findByPhone(
+  db: D1Database,
+  phone: string,
+): Promise<Lead | null> {
+  const normalised = phone.replace(/[^\d]/g, "");
+  if (!normalised) return null;
+  // Match on the last 10 digits to handle leading-zero / +44 / spaces variation.
+  const tail = normalised.slice(-10);
+  return one<Lead>(
+    db
+      .prepare(
+        `SELECT * FROM leads
+         WHERE phone IS NOT NULL
+           AND REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', '') LIKE ?
+         ORDER BY id DESC LIMIT 1`,
+      )
+      .bind(`%${tail}`),
+  );
+}
+
 export async function createLead(
   db: D1Database,
   input: LeadCreateT,

@@ -52,6 +52,8 @@ export type ActivityType =
   | "email_replied"
   | "call_made"
   | "call_received"
+  | "sms_sent"
+  | "sms_received"
   | "note"
   | "status_change"
   | "form_submitted";

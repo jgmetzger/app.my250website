@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import type { AppBindings } from "../env.js";
 import { insertActivity } from "../repos/activities.js";
+import { findByPhone } from "../repos/leads.js";
 import type { ActivityType } from "@app/shared";
 import { verifyResendWebhook } from "../lib/resend_signature.js";
 import { verifyTwilioSignature } from "../lib/twilio_signature.js";
@@ -63,6 +64,43 @@ export const webhookRoutes = new Hono<AppBindings>()
     // We log call activities client-side after the call ends; Twilio status
     // callbacks just confirm the call lifecycle. Nothing to persist here.
     return c.json({ ok: true });
+  })
+  .post("/twilio/sms", async (c) => {
+    // Inbound SMS from Twilio. Verify signature, match `From` number to a lead
+    // by phone tail, and log an sms_received activity. Twilio expects an XML
+    // (TwiML) reply; we send back an empty <Response/> so no auto-reply goes
+    // out — the user replies from inside the CRM.
+    const params = await readForm(c.req.raw);
+    const ok = await verifyTwilioSignature(
+      c.env.TWILIO_AUTH_TOKEN,
+      c.req.url,
+      params,
+      c.req.header("x-twilio-signature") ?? null,
+    );
+    const emptyTwiml = `<?xml version="1.0" encoding="UTF-8"?>\n<Response/>`;
+    if (!ok) return new Response("forbidden", { status: 403 });
+
+    const from = params.From ?? "";
+    const body = params.Body ?? "";
+    const messageSid = params.MessageSid ?? "";
+
+    const lead = from ? await findByPhone(c.env.DB, from) : null;
+    if (lead) {
+      await insertActivity(c.env.DB, {
+        lead_id: lead.id,
+        type: "sms_received",
+        direction: "inbound",
+        body,
+        metadata: { twilio_sid: messageSid, from },
+      });
+    } else {
+      // Unknown sender — log to console; the CRM only persists messages we can
+      // attach to a lead. (Could add an "unmatched" inbox later.)
+      console.warn("sms_received_unmatched", { from, messageSid });
+    }
+    return new Response(emptyTwiml, {
+      headers: { "Content-Type": "text/xml" },
+    });
   })
   .post("/resend", async (c) => {
     // Resend webhook payload shape:

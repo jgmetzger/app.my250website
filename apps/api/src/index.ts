@@ -6,6 +6,7 @@ import { callsRoutes } from "./routes/calls.js";
 import { emailRoutes } from "./routes/email.js";
 import { leadsRoutes } from "./routes/leads.js";
 import { scrapeRoutes } from "./routes/scrape.js";
+import { smsRoutes } from "./routes/sms.js";
 import { statsRoutes } from "./routes/stats.js";
 import { webhookRoutes } from "./routes/webhooks.js";
 
@@ -19,14 +20,21 @@ app.get("/api/health", (c) => c.json({ ok: true, ts: Date.now() }));
 // Carries no secrets — just booleans about whether the env vars exist.
 app.get("/api/config", (c) => {
   const e = c.env;
+  // SMS only needs the basic Twilio account creds + a phone number.
+  // Voice (browser dial) additionally needs the API key pair + TwiML app SID.
+  const hasTwilioAccount =
+    Boolean(e.TWILIO_ACCOUNT_SID) &&
+    Boolean(e.TWILIO_AUTH_TOKEN) &&
+    Boolean(e.TWILIO_PHONE_NUMBER);
+  const hasTwilioVoice =
+    hasTwilioAccount &&
+    Boolean(e.TWILIO_API_KEY) &&
+    Boolean(e.TWILIO_API_SECRET) &&
+    Boolean(e.TWILIO_TWIML_APP_SID);
   return c.json({
     features: {
-      twilio:
-        Boolean(e.TWILIO_ACCOUNT_SID) &&
-        Boolean(e.TWILIO_API_KEY) &&
-        Boolean(e.TWILIO_API_SECRET) &&
-        Boolean(e.TWILIO_TWIML_APP_SID) &&
-        Boolean(e.TWILIO_PHONE_NUMBER),
+      twilio: hasTwilioVoice,
+      twilio_sms: hasTwilioAccount,
       resend: Boolean(e.RESEND_API_KEY),
       resend_webhook_signed: Boolean(e.RESEND_WEBHOOK_SECRET),
     },
@@ -42,12 +50,14 @@ app.use("/api/leads/*", requireAuth);
 app.use("/api/scrape/*", requireAuth);
 app.use("/api/email/*", requireAuth);
 app.use("/api/calls/*", requireAuth);
+app.use("/api/sms/*", requireAuth);
 app.use("/api/stats/*", requireAuth);
 
 app.route("/api/leads", leadsRoutes);
 app.route("/api/scrape", scrapeRoutes);
 app.route("/api/email", emailRoutes);
 app.route("/api/calls", callsRoutes);
+app.route("/api/sms", smsRoutes);
 app.route("/api/stats", statsRoutes);
 
 app.onError((err, c) => {

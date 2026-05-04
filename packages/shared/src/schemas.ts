@@ -104,6 +104,11 @@ export const CallLogInput = z.object({
   notes: z.string().max(5000).optional(),
 });
 
+export const SmsSendInput = z.object({
+  lead_id: z.number().int().positive(),
+  body: z.string().min(1).max(1600),
+});
+
 export const LeadListQuery = z.object({
   status: z.string().optional(),
   city: z.string().optional(),
@@ -124,4 +129,5 @@ export type ScrapeRunInputT = z.infer<typeof ScrapeRunInput>;
 export type EmailTemplateInputT = z.infer<typeof EmailTemplateInput>;
 export type SendEmailInputT = z.infer<typeof SendEmailInput>;
 export type CallLogInputT = z.infer<typeof CallLogInput>;
+export type SmsSendInputT = z.infer<typeof SmsSendInput>;
 export type LeadListQueryT = z.infer<typeof LeadListQuery>;
