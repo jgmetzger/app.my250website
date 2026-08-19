@@ -4,13 +4,14 @@ import { api } from "./api.js";
 export interface AppConfig {
   features: {
     twilio: boolean;
+    twilio_sms: boolean;
     resend: boolean;
     resend_webhook_signed: boolean;
   };
 }
 
 const DEFAULT_CONFIG: AppConfig = {
-  features: { twilio: false, resend: false, resend_webhook_signed: false },
+  features: { twilio: false, twilio_sms: false, resend: false, resend_webhook_signed: false },
 };
 
 const Ctx = createContext<AppConfig>(DEFAULT_CONFIG);

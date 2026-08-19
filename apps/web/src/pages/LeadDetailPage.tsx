@@ -14,6 +14,7 @@ import { Layout } from "../components/Layout.js";
 import { StatusBadge, WebsiteBadge } from "../components/Badge.js";
 import { CallModal } from "../components/CallModal.js";
 import { FindEmailSidebar } from "../components/FindEmailSidebar.js";
+import { SMSModal } from "../components/SMSModal.js";
 import { SendEmailModal } from "../components/SendEmailModal.js";
 import { api } from "../lib/api.js";
 import { useConfig } from "../lib/config.js";
@@ -79,6 +80,7 @@ export function LeadDetailPage() {
   const [okToCall] = useState(isWithinUkCallingHours());
   const [showSendEmail, setShowSendEmail] = useState(false);
   const [showCall, setShowCall] = useState(false);
+  const [showSMS, setShowSMS] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,11 +203,27 @@ export function LeadDetailPage() {
             className="btn-primary text-sm"
             title={
               lead.phone
-                ? "Log a call you made from your phone"
+                ? config.features.twilio
+                  ? "Call from browser, or log a call you made from your phone"
+                  : "Log a call you made from your phone"
                 : "Add a phone number first"
             }
           >
-            📞 Log call
+            📞 Call
+          </button>
+          <button
+            onClick={() => setShowSMS(true)}
+            disabled={!lead.phone || !config.features.twilio_sms}
+            className="btn-primary text-sm"
+            title={
+              !config.features.twilio_sms
+                ? "SMS not active — set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER on the worker"
+                : lead.phone
+                  ? "Send SMS"
+                  : "Add a phone number first"
+            }
+          >
+            💬 SMS
           </button>
           <button
             onClick={() => setShowSendEmail(true)}
@@ -497,6 +515,17 @@ export function LeadDetailPage() {
           }}
         />
       ) : null}
+
+      {showSMS ? (
+        <SMSModal
+          lead={lead}
+          onClose={() => setShowSMS(false)}
+          onSent={async () => {
+            const fresh = await api.get<DetailResponse>(`/api/leads/${leadId}`);
+            setData(fresh);
+          }}
+        />
+      ) : null}
     </Layout>
   );
 }
@@ -517,6 +546,10 @@ function labelFor(a: Activity): string {
       return `Call · ${a.outcome ?? "logged"}`;
     case "call_received":
       return "Call received";
+    case "sms_sent":
+      return "SMS sent";
+    case "sms_received":
+      return "SMS received";
     case "note":
       return "Note";
     case "status_change":
