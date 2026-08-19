@@ -90,6 +90,13 @@ export const SendEmailInput = z.object({
   body_override: z.string().max(20000).optional(),
 });
 
+export const SendSmsInput = z.object({
+  lead_id: z.number().int().positive(),
+  body: z.string().min(1).max(1600),
+  /** Optional raw number to use instead of the lead's stored phone. */
+  to_override: z.string().min(3).max(40).optional(),
+});
+
 export const CallLogInput = z.object({
   lead_id: z.number().int().positive(),
   duration_seconds: z.number().int().min(0).max(60 * 60 * 4),
@@ -123,5 +130,6 @@ export type NoteInputT = z.infer<typeof NoteInput>;
 export type ScrapeRunInputT = z.infer<typeof ScrapeRunInput>;
 export type EmailTemplateInputT = z.infer<typeof EmailTemplateInput>;
 export type SendEmailInputT = z.infer<typeof SendEmailInput>;
+export type SendSmsInputT = z.infer<typeof SendSmsInput>;
 export type CallLogInputT = z.infer<typeof CallLogInput>;
 export type LeadListQueryT = z.infer<typeof LeadListQuery>;
