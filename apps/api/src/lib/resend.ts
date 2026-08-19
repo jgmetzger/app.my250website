@@ -8,6 +8,8 @@ export interface ResendSendInput {
   subject: string;
   text: string;
   html?: string;
+  /** Where replies should land. Omit to have replies go to `from`. */
+  replyTo?: string;
   /** Tags get echoed back on webhook events — used to correlate to a lead. */
   tags?: Array<{ name: string; value: string }>;
 }
@@ -29,6 +31,7 @@ export async function resendSend(input: ResendSendInput): Promise<ResendSendResu
       subject: input.subject,
       text: input.text,
       html: input.html,
+      reply_to: input.replyTo,
       tags: input.tags,
     }),
   });

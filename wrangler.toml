@@ -14,6 +14,9 @@ command = "pnpm build:web"
 SENDER_EMAIL = "hi@my250website.com"
 SENDER_NAME = "James Metzger"
 DAILY_EMAIL_CAP = "15"
+# Where replies to outreach email land. Unset/empty = replies go to SENDER_EMAIL,
+# so only set this if hi@my250website.com is not an inbox you read.
+# REPLY_TO_EMAIL = "you@example.com"
 
 [observability]
 enabled = true

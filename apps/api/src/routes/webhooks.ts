@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { AppBindings } from "../env.js";
 import { insertActivity } from "../repos/activities.js";
-import type { ActivityType } from "@app/shared";
+import { extractTag, mapResendEvent } from "../lib/resend_events.js";
 import { verifyResendWebhook } from "../lib/resend_signature.js";
 import { verifyTwilioSignature } from "../lib/twilio_signature.js";
 
@@ -65,11 +65,17 @@ export const webhookRoutes = new Hono<AppBindings>()
     return c.json({ ok: true });
   })
   .post("/resend", async (c) => {
-    // Resend webhook payload shape:
-    //   { type: 'email.delivered'|'email.opened'|'email.bounced'|...,
-    //     data: { email_id, to, subject, tags: [{ name, value }] } }
+    // Resend webhook. Contract with Resend/Svix: answer 2xx fast, every time
+    // the request is authentic — continuous non-2xx responses get the
+    // endpoint disabled in the Resend dashboard. So after signature
+    // verification, NOTHING may turn into a non-2xx: unknown event types,
+    // schema surprises, and DB failures are logged and acked.
     //
-    // We must read the body as text for signature verification, then parse JSON.
+    // Payload (shape has drifted across Resend versions — parse defensively):
+    //   { type: 'email.delivered'|'email.opened'|...,
+    //     data: { email_id, to, subject,
+    //             tags: [{name,value}]  <- old shape
+    //                 | {lead_id:"5"} } } <- new shape
     const rawBody = await c.req.text();
     if (c.env.RESEND_WEBHOOK_SECRET) {
       const ok = await verifyResendWebhook({
@@ -84,55 +90,49 @@ export const webhookRoutes = new Hono<AppBindings>()
     // If the secret is not set, we accept unsigned payloads — same behaviour as
     // before. Set RESEND_WEBHOOK_SECRET to enable verification.
 
-    let payload: ResendWebhookPayload;
     try {
-      payload = JSON.parse(rawBody) as ResendWebhookPayload;
-    } catch {
-      return c.json({ error: "invalid_json" }, 400);
+      const payload = JSON.parse(rawBody) as ResendWebhookPayload;
+      const eventType = payload?.type;
+      const data = payload?.data;
+
+      const activityType = mapResendEvent(eventType);
+      if (!activityType) {
+        console.log("resend webhook: ignoring event type", eventType ?? "(none)");
+        return c.json({ ok: true, ignored: true });
+      }
+
+      const leadIdTag = extractTag(data?.tags, "lead_id");
+      const leadId = leadIdTag ? Number(leadIdTag) : NaN;
+      if (!Number.isInteger(leadId) || leadId <= 0) {
+        console.log("resend webhook: no lead_id tag on", eventType);
+        return c.json({ ok: true, ignored: true });
+      }
+
+      await insertActivity(c.env.DB, {
+        lead_id: leadId,
+        type: activityType,
+        direction: "outbound",
+        subject: typeof data?.subject === "string" ? data.subject : null,
+        metadata: {
+          resend_id: typeof data?.email_id === "string" ? data.email_id : undefined,
+          event: eventType,
+        },
+      });
+      return c.json({ ok: true });
+    } catch (err) {
+      // Ack anyway — a processing bug on our side must not disable the
+      // endpoint. The event is in the logs for replay/diagnosis.
+      console.error("resend webhook: processing failed", err, rawBody.slice(0, 500));
+      return c.json({ ok: true, ignored: true, error: "processing_failed" });
     }
-
-    const eventType = payload?.type;
-    const tags = payload?.data?.tags ?? [];
-    const leadIdTag = tags.find((t) => t?.name === "lead_id")?.value;
-    const leadId = leadIdTag ? Number(leadIdTag) : NaN;
-
-    const activityType = mapResendEvent(eventType);
-    if (!activityType || !Number.isInteger(leadId) || leadId <= 0) {
-      return c.json({ ok: true, ignored: true });
-    }
-
-    await insertActivity(c.env.DB, {
-      lead_id: leadId,
-      type: activityType,
-      direction: "outbound",
-      subject: payload.data?.subject ?? null,
-      metadata: { resend_id: payload.data?.email_id, event: eventType },
-    });
-
-    return c.json({ ok: true });
   });
 
 interface ResendWebhookPayload {
   type?: string;
   data?: {
-    email_id?: string;
-    to?: string | string[];
-    subject?: string;
-    tags?: Array<{ name?: string; value?: string }>;
+    email_id?: unknown;
+    to?: unknown;
+    subject?: unknown;
+    tags?: unknown;
   };
-}
-
-function mapResendEvent(type: string | undefined): ActivityType | null {
-  switch (type) {
-    case "email.delivered":
-      return "email_delivered";
-    case "email.opened":
-      return "email_opened";
-    case "email.bounced":
-    case "email.delivery_delayed":
-    case "email.complained":
-      return "email_bounced";
-    default:
-      return null;
-  }
 }

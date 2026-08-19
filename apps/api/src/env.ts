@@ -8,6 +8,8 @@ export interface Env {
   SENDER_EMAIL: string;
   SENDER_NAME: string;
   DAILY_EMAIL_CAP: string;
+  /** Optional Reply-To for outbound email. Unset → replies go to SENDER_EMAIL. */
+  REPLY_TO_EMAIL?: string;
 
   // secrets
   APP_PASSWORD: string;

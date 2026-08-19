@@ -91,6 +91,7 @@ export const emailRoutes = new Hono<AppBindings>()
       const result = await resendSend({
         apiKey: c.env.RESEND_API_KEY,
         from: `${c.env.SENDER_NAME} <${c.env.SENDER_EMAIL}>`,
+        replyTo: c.env.REPLY_TO_EMAIL || undefined,
         to: lead.email,
         subject,
         text,
